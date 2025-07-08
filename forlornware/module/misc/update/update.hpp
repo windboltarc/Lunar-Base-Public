@@ -15,6 +15,7 @@ namespace update
 {
     namespace roblox
     {
+        const uintptr_t print = rebase(0x156D240);
         const uintptr_t luad_throw = rebase(0x265A390); // you will need this since it will handle errors
     }
 
@@ -46,6 +47,9 @@ namespace update
 
 namespace roblox
 {
+    using print_func_t = int(__fastcall*)(int, const char*, ...);
+    inline print_func_t r_print = reinterpret_cast<print_func_t>(update::roblox::print);
+
     using luad_throw_t = void(__fastcall*)(lua_State*, int);
     inline luad_throw_t luad_throw = reinterpret_cast<luad_throw_t>(update::roblox::luad_throw);
 }
