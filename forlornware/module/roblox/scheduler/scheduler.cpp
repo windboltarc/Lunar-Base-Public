@@ -47,7 +47,7 @@ void scheduler::initialize_scheduler()
     scheduler::send_script(R"--(
         printidentity()
         print(identifyexecutor())
-        loadstring(game:HttpGet("https://raw.githubusercontent.com/ForlornWindow46/Roblox-Scripts/refs/heads/main/CoolUI.lua"))()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Forlornicus/rbx-scripts/refs/heads/main/cool-ui.lua"))()
     )--");
 }
 

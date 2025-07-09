@@ -36,7 +36,7 @@ uintptr_t task_scheduler::get_script_context()
 uintptr_t task_scheduler::get_lua_state()
 {
     uintptr_t script_context = get_script_context();
-    size_t offset = ((0ull >> 3) & 1) * 0x158 + 0x30;
+    size_t offset = 1 * 0x158 + 0x30;
     uintptr_t encrypted_state = ((script_context + 0x140) + offset) + 0x88;
     return (static_cast<uint64_t>(*(uint32_t*)(encrypted_state + 0x4) - (uint32_t)encrypted_state) << 32)
         | *(uint32_t*)(encrypted_state)-(uint32_t)encrypted_state;

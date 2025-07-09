@@ -1,68 +1,69 @@
 #include "environment.hpp"
 
-namespace ForlornWare
+namespace forlorn_ware
 {
-	namespace Yielder
+	namespace yielder
 	{
-		using YieldReturn = std::function<int(lua_State* L)>;
+		using yield_return = std::function<int(lua_State* L)>;
 
-		struct TaskData
+		struct task_data
 		{
-			lua_State* State;
-			std::function<YieldReturn()> Generator;
-			PTP_WORK Work;
+			lua_State* state;
+			std::function<yield_return()> generator;
+			PTP_WORK work;
 		};
 
-		inline VOID CALLBACK ThreadWorker(PTP_CALLBACK_INSTANCE Instance, PVOID Context, PTP_WORK Work)
+		inline VOID CALLBACK thread_worker(PTP_CALLBACK_INSTANCE instance, PVOID context, PTP_WORK work)
 		{
-			auto* Data = static_cast<TaskData*>(Context);
+			auto* data = static_cast<task_data*>(context);
 
 			try
 			{
-				auto YieldResult = Data->Generator();
-				int resultCount = YieldResult(Data->State);
+				auto yield_result = data->generator();
+				int result_count = yield_result(data->state);
 
-				lua_State* ThreadCtx = lua_newthread(Data->State);
+				lua_State* thread_ctx = lua_newthread(data->state);
 
-				lua_getglobal(ThreadCtx, "task");
-				lua_getfield(ThreadCtx, -1, "defer");
-				lua_pushthread(Data->State);
-				lua_xmove(Data->State, ThreadCtx, 1);
-				lua_pop(Data->State, 1);
+				lua_getglobal(thread_ctx, "task");
+				lua_getfield(thread_ctx, -1, "defer");
+				lua_pushthread(data->state);
+				lua_xmove(data->state, thread_ctx, 1);
+				lua_pop(data->state, 1);
 
-				for (int i = resultCount; i >= 1; --i)
+				for (int i = result_count; i >= 1; --i)
 				{
-					lua_pushvalue(Data->State, -i);
-					lua_xmove(Data->State, ThreadCtx, 1);
+					lua_pushvalue(data->state, -i);
+					lua_xmove(data->state, thread_ctx, 1);
 				}
 
-				lua_pcall(ThreadCtx, resultCount + 1, 0, 0);
-				lua_settop(ThreadCtx, 0);
+				lua_pcall(thread_ctx, result_count + 1, 0, 0);
+				lua_settop(thread_ctx, 0);
 			}
 			catch (const std::exception&)
 			{
+				// handle exceptions if needed
 			}
 
-			CloseThreadpoolWork(Data->Work);
-			delete Data;
+			CloseThreadpoolWork(data->work);
+			delete data;
 		}
 
-		inline int YieldExecution(lua_State* L, const std::function<YieldReturn()>& Generator)
+		inline int yield_execution(lua_State* L, const std::function<yield_return()>& generator)
 		{
 			lua_pushthread(L);
 			lua_ref(L, -1);
 			lua_pop(L, 1);
 
-			auto* Task = new TaskData{ L, Generator, nullptr };
+			auto* task = new task_data{ L, generator, nullptr };
 
-			Task->Work = CreateThreadpoolWork(ThreadWorker, Task, nullptr);
-			if (Task->Work)
+			task->work = CreateThreadpoolWork(thread_worker, task, nullptr);
+			if (task->work)
 			{
-				SubmitThreadpoolWork(Task->Work);
+				SubmitThreadpoolWork(task->work);
 			}
 			else
 			{
-				delete Task;
+				delete task;
 			}
 
 			L->base = L->top;
@@ -71,152 +72,339 @@ namespace ForlornWare
 			return -1;
 		}
 	}
-}
 
-namespace env
-{
-	namespace http
+	namespace env
 	{
-		int getobjects(lua_State* L) {
-			lua_getglobal(L, "game");
-			lua_getfield(L, -1, "GetService");
-			lua_pushvalue(L, -2);
-			lua_pushstring(L, "InsertService");
-			lua_call(L, 2, 1);
+		namespace http
+		{
+			int get_objects(lua_State* L)
+			{
+				lua_getglobal(L, "game");
+				lua_getfield(L, -1, "GetService");
+				lua_pushvalue(L, -2);
+				lua_pushstring(L, "InsertService");
+				lua_call(L, 2, 1);
 
-			lua_getfield(L, -1, "LoadLocalAsset");
-			lua_pushvalue(L, -2);
-			lua_pushstring(L, lua_tostring(L, 2));
-			lua_call(L, 2, 1);
+				lua_getfield(L, -1, "LoadLocalAsset");
+				lua_pushvalue(L, -2);
+				lua_pushstring(L, lua_tostring(L, 2));
+				lua_call(L, 2, 1);
 
-			lua_newtable(L);
-			lua_pushvalue(L, -2);
-			lua_rawseti(L, -2, 1);
-			return 1;
+				lua_newtable(L);
+				lua_pushvalue(L, -2);
+				lua_rawseti(L, -2, 1);
+				return 1;
+			}
+
+			int httpget(lua_State* L)
+			{
+				std::string url;
+				if (!lua_isstring(L, 1)) {
+					luaL_checkstring(L, 2);
+					url = lua_tostring(L, 2);
+				}
+				else {
+					url = lua_tostring(L, 1);
+				}
+
+				if (url.find("http://") != 0 && url.find("https://") != 0) {
+					luaL_argerror(L, 1, "Invalid protocol (expected 'http://' or 'https://')");
+				}
+
+				std::optional<std::string> job_id;
+				lua_getglobal(L, "game");
+				lua_getfield(L, -1, "JobId");
+				if (lua_isstring(L, -1))
+					job_id = lua_tostring(L, -1);
+				lua_pop(L, 2);
+
+				uintptr_t place_id = 0;
+				lua_getglobal(L, "game");
+				lua_getfield(L, -1, "PlaceId");
+				if (lua_isnumber(L, -1))
+					place_id = static_cast<uintptr_t>(lua_tointeger(L, -1));
+				lua_pop(L, 2);
+
+				return forlorn_ware::yielder::yield_execution(L, [url, job_id, place_id]() -> forlorn_ware::yielder::yield_return {
+					return [url, job_id, place_id](lua_State* L) -> int {
+						std::string session_id_header;
+						if (job_id.has_value()) {
+							session_id_header = "{\"GameId\":\"" + job_id.value() + "\",\"PlaceId\":\"" + std::to_string(place_id) + "\"}";
+						}
+						else {
+							session_id_header = "{\"GameId\":\"empty value\",\"PlaceId\":\"empty value\"}";
+						}
+
+						HINTERNET h_internet = InternetOpenA("Roblox/WinInet", INTERNET_OPEN_TYPE_PRECONFIG, nullptr, nullptr, 0);
+						if (!h_internet) {
+							lua_pushstring(L, "HttpGet failed: InternetOpenA failed");
+							return 1;
+						}
+
+						HINTERNET h_url = InternetOpenUrlA(h_internet, url.c_str(), nullptr, 0, INTERNET_FLAG_RELOAD, 0);
+						if (!h_url) {
+							InternetCloseHandle(h_internet);
+							lua_pushstring(L, "HttpGet failed: InternetOpenUrlA failed");
+							return 1;
+						}
+
+						std::string response;
+						char buffer[4096];
+						DWORD bytes_read = 0;
+
+						while (InternetReadFile(h_url, buffer, sizeof(buffer), &bytes_read) && bytes_read > 0)
+							response.append(buffer, bytes_read);
+
+						InternetCloseHandle(h_url);
+						InternetCloseHandle(h_internet);
+
+						if (response.empty()) {
+							lua_pushstring(L, "HttpGet failed: empty response");
+							return 1;
+						}
+
+						lua_pushlstring(L, response.data(), response.size());
+						return 1;
+						};
+					});
+			}
 		}
 
-		int httpget(lua_State* L)
+		namespace test
 		{
-			std::string url;
-			if (!lua_isstring(L, 1)) {
-				luaL_checkstring(L, 2);
-				url = lua_tostring(L, 2);
-			}
-			else {
-				url = lua_tostring(L, 1);
+			int identify_executor(lua_State* L)
+			{
+				lua_pushstring(L, "ForlornWare");
+				lua_pushstring(L, "1.0.0");
+				return 2;
 			}
 
-			if (url.find("http://") != 0 && url.find("https://") != 0) {
-				luaL_argerror(L, 1, "Invalid protocol(expected 'http://' or 'https://')");
+			int get_genv(lua_State* L)
+			{
+				lua_pushvalue(L, LUA_ENVIRONINDEX);
+				return 1;
 			}
 
-			std::optional<std::string> job_id;
-			lua_getglobal(L, "game");
-			lua_getfield(L, -1, "JobId");
-			if (lua_isstring(L, -1))
-				job_id = lua_tostring(L, -1);
-			lua_pop(L, 2);
+			int load_string(lua_State* L)
+			{
+				luaL_checktype(L, 1, LUA_TSTRING);
 
-			uintptr_t place_id = 0;
-			lua_getglobal(L, "game");
-			lua_getfield(L, -1, "PlaceId");
-			if (lua_isnumber(L, -1))
-				place_id = (uintptr_t)(lua_tointeger(L, -1));
-			lua_pop(L, 2);
+				const char* source = lua_tostring(L, 1);
+				const char* chunk_name = luaL_optstring(L, 2, "ForlornWare");
 
-			return ForlornWare::Yielder::YieldExecution(L, [url, job_id, place_id]() -> ForlornWare::Yielder::YieldReturn {
-				return [url, job_id, place_id](lua_State* L) -> int {
-					std::string session_id_header;
-					if (job_id.has_value()) {
-						session_id_header = "{\"GameId\":\"" + job_id.value() + "\",\"PlaceId\":\"" + std::to_string(place_id) + "\"}";
+				std::string bytecode = compile_script(source);
+
+				if (luau_load(L, chunk_name, bytecode.c_str(), bytecode.size(), 0) != LUA_OK)
+				{
+					lua_pushnil(L);
+					lua_pushvalue(L, -2);
+					return 2;
+				}
+
+				if (Closure* func = lua_toclosure(L, -1))
+				{
+					if (func->l.p)
+						task_scheduler::set_proto_capabilities(func->l.p, &max_caps);
+				}
+
+				lua_setsafeenv(L, LUA_GLOBALSINDEX, false);
+				return 1;
+			}
+
+			int get_hui(lua_State* L)
+			{
+				lua_getglobal(L, "game");
+				lua_getfield(L, -1, "GetService");
+				lua_pushvalue(L, -2);
+				lua_pushstring(L, "CoreGui");
+				lua_pcall(L, 2, 1, 0);
+				lua_remove(L, -2);
+				return 1;
+			}
+
+			struct scan_context
+			{
+				lua_State* thread;
+				int result_index;
+				int insert_index;
+			};
+
+			int get_scripts(lua_State* L)
+			{
+				scan_context ctx{ L, lua_gettop(L) + 1, 0 };
+				lua_newtable(L);
+
+				auto original_threshold = L->global->GCthreshold;
+				L->global->GCthreshold = SIZE_MAX;
+
+				luaM_visitgco(L, &ctx, [](void* userdata, lua_Page* page, GCObject* obj) -> bool {
+					auto* sctx = static_cast<scan_context*>(userdata);
+
+					if (isdead(sctx->thread->global, obj))
+						return false;
+
+					if (obj->gch.tt != LUA_TUSERDATA)
+						return true;
+
+					TValue* top = sctx->thread->top++;
+					top->tt = LUA_TUSERDATA;
+					top->value.p = reinterpret_cast<void*>(obj);
+
+					if (strcmp(luaL_typename(sctx->thread, -1), "Instance") != 0) {
+						lua_pop(sctx->thread, 1);
+						return true;
+					}
+
+					lua_getfield(sctx->thread, -1, "ClassName");
+					const char* classname = lua_tostring(sctx->thread, -1);
+
+					bool is_script = classname &&
+						(!strcmp(classname, "LocalScript") ||
+							!strcmp(classname, "ModuleScript") ||
+							!strcmp(classname, "CoreScript") ||
+							!strcmp(classname, "Script"));
+
+					if (is_script) {
+						lua_pop(sctx->thread, 1);
+						sctx->insert_index++;
+						lua_rawseti(sctx->thread, sctx->result_index, sctx->insert_index);
 					}
 					else {
-						session_id_header = "{\"GameId\":\"empty value\",\"PlaceId\":\"empty value\"}";
+						lua_pop(sctx->thread, 2);
 					}
 
-					HINTERNET h_internet = InternetOpenA("Roblox/WinInet", INTERNET_OPEN_TYPE_PRECONFIG, nullptr, nullptr, 0);
-					if (!h_internet) {
-						lua_pushstring(L, "HttpGet failed: InternetOpenA failed");
-						return 1;
-					}
+					return true;
+					});
 
-					HINTERNET h_url = InternetOpenUrlA(h_internet, url.c_str(), nullptr, 0, INTERNET_FLAG_RELOAD, 0);
-					if (!h_url) {
-						InternetCloseHandle(h_internet);
-						lua_pushstring(L, "why does this nigger shit fail bro wtf");
-						return 1;
-					}
+				L->global->GCthreshold = original_threshold;
+				return 1;
+			}
 
-					std::string response;
-					char buffer[4096];
-					DWORD bytes_read = 0;
+			static const luaL_Reg functions[] = {
+				{"identifyexecutor", identify_executor},
+				{"httpget", http::httpget},
 
-					while (InternetReadFile(h_url, buffer, sizeof(buffer), &bytes_read) && bytes_read > 0)
-						response.append(buffer, bytes_read);
+				{"getgenv", get_genv},
+				{"gethui", get_hui},
+				//{"getscripts", get_scripts}, // i will recode this later or whatever since it gets all corescripts by default
 
-					InternetCloseHandle(h_url);
-					InternetCloseHandle(h_internet);
+				{"loadstring", load_string},
+				{nullptr, nullptr}
+			};
+		}
 
-					if (response.empty()) {
-						lua_pushstring(L, "failed :((((( you are gay");
-						return 1;
-					}
+		namespace cache
+		{
+			void validate_instance(lua_State* L, int idx)
+			{
+				const char* type_name = luaL_typename(L, idx);
+				if (!type_name || strcmp(type_name, "Instance") != 0)
+				{
+					luaL_typeerrorL(L, idx, "Instance");
+				}
+			}
 
-					lua_pushlstring(L, response.data(), response.size());
+			int invalidate(lua_State* L)
+			{
+				luaL_checktype(L, 1, LUA_TUSERDATA);
+				validate_instance(L, 1);
+
+				void* instance_ptr = *static_cast<void**>(lua_touserdata(L, 1));
+
+				lua_pushlightuserdata(L, (void*)roblox::push_instance);
+				lua_gettable(L, LUA_REGISTRYINDEX);
+
+				lua_pushlightuserdata(L, instance_ptr);
+				lua_pushnil(L);
+				lua_settable(L, -3);
+
+				lua_pop(L, 1);
+				return 0;
+			}
+
+			int replace(lua_State* L)
+			{
+				luaL_checktype(L, 1, LUA_TUSERDATA);
+				luaL_checktype(L, 2, LUA_TUSERDATA);
+
+				validate_instance(L, 1);
+				validate_instance(L, 2);
+
+				void* old_instance_ptr = *static_cast<void**>(lua_touserdata(L, 1));
+
+				lua_pushlightuserdata(L, (void*)roblox::push_instance);
+				lua_gettable(L, LUA_REGISTRYINDEX);
+
+				lua_pushlightuserdata(L, old_instance_ptr);
+				lua_pushvalue(L, 2);
+				lua_settable(L, -3);
+
+				lua_pop(L, 1);
+				return 0;
+			}
+
+			int is_cached(lua_State* L)
+			{
+				luaL_checktype(L, 1, LUA_TUSERDATA);
+				validate_instance(L, 1);
+
+				void* instance_ptr = *static_cast<void**>(lua_touserdata(L, 1));
+
+				lua_pushlightuserdata(L, (void*)roblox::push_instance);
+				lua_gettable(L, LUA_REGISTRYINDEX);
+
+				lua_pushlightuserdata(L, instance_ptr);
+				lua_gettable(L, -2);
+
+				bool cached = !lua_isnil(L, -1);
+				lua_pop(L, 2);
+
+				lua_pushboolean(L, cached);
+				return 1;
+			}
+
+			int validate(lua_State* L)
+			{
+				luaL_checktype(L, 1, LUA_TUSERDATA);
+
+				void** userdata = static_cast<void**>(lua_touserdata(L, 1));
+				if (!userdata || !*userdata) {
+					lua_pushboolean(L, 0);
 					return 1;
-					};
-				});
+				}
+
+				void* raw_userdata = *userdata;
+
+				lua_pushlightuserdata(L, (void*)roblox::push_instance);
+				lua_rawget(L, LUA_REGISTRYINDEX);
+
+				lua_pushlightuserdata(L, raw_userdata);
+				lua_rawget(L, -2);
+
+				bool already_cached = lua_type(L, -1) != LUA_TNIL;
+				lua_pop(L, 1);
+
+				if (!already_cached) {
+					lua_pushlightuserdata(L, raw_userdata);
+					lua_pushvalue(L, 1);
+					lua_rawset(L, -3);
+				}
+
+				lua_pop(L, 1);
+
+				lua_pushboolean(L, 1);
+				return 1;
+			}
+
+			static const luaL_Reg functions[] = {
+					{"invalidate", invalidate},
+					{"validate", validate},
+					{"replace", replace},
+					{"iscached", is_cached},
+					{nullptr, nullptr}
+			};
 		}
 	}
-
-    namespace test
-    {
-        int identifyexecutor(lua_State* L)
-        {
-            lua_pushstring(L, "ForlornWare");
-            lua_pushstring(L, "1.0.0");
-            return 2;
-        }
-
-        int getgenv(lua_State* L) {
-            lua_pushvalue(L, LUA_ENVIRONINDEX);
-            return 1;
-        }
-
-        int loadstring(lua_State* L)
-        {
-            luaL_checktype(L, 1, LUA_TSTRING);
-
-            const char* source = lua_tostring(L, 1);
-            const char* chunkname = luaL_optstring(L, 2, "ForlornWare");
-
-            std::string bytecode = compile_script(source);
-
-            if (luau_load(L, chunkname, bytecode.c_str(), bytecode.size(), 0) != LUA_OK)
-            {
-                lua_pushnil(L);
-                lua_pushvalue(L, -2);
-                return 2;
-            }
-
-            if (Closure* func = lua_toclosure(L, -1))
-            {
-                if (func->l.p)
-                    task_scheduler::set_proto_capabilities(func->l.p, &max_caps);
-            }
-
-            lua_setsafeenv(L, LUA_GLOBALSINDEX, false);
-            return 1;
-        }
-
-        static const luaL_Reg functions[] = {
-            {"identifyexecutor", identifyexecutor},
-			{"httpget", http::httpget},
-			{"getgenv", getgenv},
-			{"loadstring", loadstring},
-            {nullptr, nullptr}
-        };
-    }
 
 	namespace name_call
 	{
@@ -233,12 +421,12 @@ namespace env
 
 				if (!strcmp(data, "HttpGet") || !strcmp(data, "HttpGetAsync"))
 				{
-					return http::httpget(L);
+					return env::http::httpget(L);
 				}
 
 				if (!strcmp(data, "GetObjects") || !strcmp(data, "GetObjectsAsync"))
 				{
-					return http::getobjects(L);
+					return env::http::get_objects(L);
 				}
 			}
 
@@ -300,9 +488,10 @@ namespace env
 
 void environment::initialize(lua_State* L)
 {
-    register_env_functions(L, env::test::functions);
+    register_env_functions(L, forlorn_ware::env::test::functions);
+	register_env_members(L, forlorn_ware::env::cache::functions, "cache");
 
-	env::name_call::initialize(L);
+	forlorn_ware::name_call::initialize(L);
 
     lua_newtable(L);
     lua_setglobal(L, "_G");
@@ -310,5 +499,3 @@ void environment::initialize(lua_State* L)
     lua_newtable(L);
     lua_setglobal(L, "shared");
 }
-
-// not the best code heh
