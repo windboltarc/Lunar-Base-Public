@@ -295,7 +295,7 @@ namespace forlorn_ware
 
 		namespace cache
 		{
-			void validate_instance(lua_State* L, int idx)
+			void validate_instance(lua_State* L, int idx) 
 			{
 				const char* type_name = luaL_typename(L, idx);
 				if (!type_name || strcmp(type_name, "Instance") != 0)

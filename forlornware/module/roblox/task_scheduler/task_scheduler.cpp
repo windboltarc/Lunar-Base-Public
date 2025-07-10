@@ -11,11 +11,8 @@ void task_scheduler::set_proto_capabilities(Proto* proto, uintptr_t* c)
 
 void task_scheduler::set_thread_capabilities(lua_State* l, int lvl, uintptr_t c)
 {
-    if (!l || !l->userdata) return;
-
-    auto extra_space = (uintptr_t)(l->userdata);
-    *(uintptr_t*)(extra_space + 0x48) = c;
-    *(int*)(extra_space + 0x30) = lvl;
+    *(uintptr_t*)((uintptr_t)(l->userdata) + 0x48) = c;
+    *(int*)((uintptr_t)(l->userdata) + 0x30) = lvl;
 }
 
 uintptr_t task_scheduler::get_datamodel()
@@ -26,18 +23,13 @@ uintptr_t task_scheduler::get_datamodel()
 
 uintptr_t task_scheduler::get_script_context()
 {
-    uintptr_t datamodel = get_datamodel();
-
-    uintptr_t children_pointer = *(uintptr_t*)(datamodel + update::offsets::instance::children);
-    uintptr_t children = *(uintptr_t*)(children_pointer);
-    return *(uintptr_t*)(children + update::offsets::datamodel::script_context);
+    uintptr_t children_pointer = *(uintptr_t*)(get_datamodel() + update::offsets::instance::children);
+    return *(uintptr_t*)(*(uintptr_t*)(children_pointer) + update::offsets::datamodel::script_context);
 }
 
-uintptr_t task_scheduler::get_lua_state()
-{
-    uintptr_t script_context = get_script_context();
-    size_t offset = 1 * 0x158 + 0x30;
-    uintptr_t encrypted_state = ((script_context + 0x140) + offset) + 0x88;
-    return (static_cast<uint64_t>(*(uint32_t*)(encrypted_state + 0x4) - (uint32_t)encrypted_state) << 32)
-        | *(uint32_t*)(encrypted_state)-(uint32_t)encrypted_state;
+uintptr_t task_scheduler::get_lua_state() {
+    auto base = get_script_context() + 0x170; // globalstate offset + conversion offset (0x140 + 0x30)
+    auto nigga = static_cast<uint32_t>(base + 0x88);
+    auto ptr = reinterpret_cast<const uint32_t*>(base + 0x88);
+    return (uint64_t(ptr[1] ^ nigga) << 32) | (ptr[0] ^ nigga);
 }
