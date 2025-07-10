@@ -18,7 +18,6 @@ namespace update
         const uintptr_t print = rebase(0x14AD380);
         const uintptr_t luad_throw = rebase(0x2653370); // you will need this since it will handle errors
         const uintptr_t push_instance = rebase(0xEB0250);
-        const uintptr_t get_global_state = rebase(0xDD2460);
     }
 
     namespace lua
@@ -57,9 +56,6 @@ namespace roblox
 
     using push_instance_t = void*(__fastcall*)(lua_State*, void*);
     inline push_instance_t push_instance = reinterpret_cast<push_instance_t>(update::roblox::push_instance);
-
-    using get_state_t = uintptr_t(__fastcall*)(int64_t, uint64_t*, uint64_t*);
-    inline get_state_t get_state = reinterpret_cast<get_state_t>(update::roblox::get_global_state);
 }
 
 #define LUAU_COMMA_SEP ,
