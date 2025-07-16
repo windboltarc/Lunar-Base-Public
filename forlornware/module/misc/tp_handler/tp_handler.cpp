@@ -15,6 +15,7 @@ void teleport_loop()
 
 	while (true)
 	{
+
 		uintptr_t current_datamodel = task_scheduler::get_datamodel();
 		if (!current_datamodel)
 			continue;
