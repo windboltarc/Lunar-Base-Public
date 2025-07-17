@@ -24,13 +24,13 @@
     <ClCompile Include="module\execution\execution.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="module\misc\tp_handler\tp_handler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="module\roblox\scheduler\scheduler.cpp">
+    <ClCompile Include="module\misc\teleport_handler\tp_handler.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="module\roblox\task_scheduler\task_scheduler.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="module\roblox\context_manager\context_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="dependencies\luau\Ast\src\Allocator.cpp">
@@ -204,6 +204,24 @@
     <ClCompile Include="dependencies\lz4\include\lz4hc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="module\environment\yielder\yielder.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="module\environment\hooks\hooks.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="module\environment\libraries\http\http_library.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="module\environment\libraries\script\script_library.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="module\environment\libraries\closures\closure_library.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="module\misc\communication\com.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="module\environment\environment.hpp">
@@ -218,13 +236,13 @@
     <ClInclude Include="module\misc\update\enchelper\enchelper.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="module\misc\tp_handler\tp_handler.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="module\roblox\scheduler\scheduler.hpp">
+    <ClInclude Include="module\misc\teleport_handler\tp_handler.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="module\roblox\task_scheduler\task_scheduler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module\roblox\context_manager\context_manager.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dependencies\luau\Ast\include\Luau\Allocator.h">
@@ -402,6 +420,24 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="dependencies\zstd\include\zstd\zstd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module\environment\yielder\yielder.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module\environment\hooks\hooks.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module\environment\libraries\http\http_library.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module\environment\libraries\script\script_library.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module\environment\libraries\closures\closure_library.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="module\misc\communication\com.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

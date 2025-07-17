@@ -20,7 +20,7 @@ void execution::execute_script(lua_State* l, const std::string& script)
 
     Closure* closure = (Closure*)lua_topointer(thread, -1);
     if (closure && closure->l.p)
-        task_scheduler::set_proto_capabilities(closure->l.p, &max_caps);
+        context_manager::set_proto_capabilities(closure->l.p, &max_caps);
 
     lua_getglobal(l, "task");
     lua_getfield(l, -1, "defer");

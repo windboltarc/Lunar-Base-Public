@@ -16,8 +16,7 @@ namespace update
     namespace roblox
     {
         const uintptr_t print = rebase(0x14B9880);
-        const uintptr_t luad_throw = rebase(0x2652140); // you will need this since it will handle errors
-        const uintptr_t push_instance = rebase(0xECCCD0);
+        const uintptr_t luad_throw = rebase(0x2652140);
     }
 
     namespace lua
@@ -53,9 +52,6 @@ namespace roblox
 
     using luad_throw_t = void(__fastcall*)(lua_State*, int);
     inline luad_throw_t luad_throw = reinterpret_cast<luad_throw_t>(update::roblox::luad_throw);
-
-    using push_instance_t = void*(__fastcall*)(lua_State*, void*);
-    inline push_instance_t push_instance = reinterpret_cast<push_instance_t>(update::roblox::push_instance);
 }
 
 #define LUAU_COMMA_SEP ,

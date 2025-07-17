@@ -1,29 +1,57 @@
 #include "task_scheduler.hpp"
 
-void task_scheduler::set_proto_capabilities(Proto* proto, uintptr_t* c) {
-    if (!proto) return;
-    proto->userdata = c;
-    for (int i = 0; i < proto->sizep; ++i)
-        set_proto_capabilities(proto->p[i], c);
+int hook_scheduler(lua_State* L)
+{
+    if (!globals::execution_queue.empty())
+    {
+        auto script = std::move(globals::execution_queue.front());
+        globals::execution_queue.pop();
+
+        execution::execute_script(globals::forlorn_state, std::move(script));
+    }
+    return 0;
 }
 
-void task_scheduler::set_thread_capabilities(lua_State* l, int lvl, uintptr_t c) {
-    *(uintptr_t*)((uintptr_t)(l->userdata) + 0x48) = c;
-    *(int*)((uintptr_t)(l->userdata) + 0x30) = lvl;
+void setup_queue(lua_State* L)
+{
+    lua_getglobal(L, "game");
+    lua_getfield(L, -1, "GetService");
+    lua_pushvalue(L, -2);
+
+    lua_pushstring(L, "RunService");
+    lua_pcall(L, 2, 1, 0);
+
+    lua_getfield(L, -1, "Stepped");
+    lua_getfield(L, -1, "Connect");
+    lua_pushvalue(L, -2);
+
+    lua_pushcclosure(L, hook_scheduler, nullptr, 0);
+    lua_pcall(L, 2, 0, 0);
+    lua_pop(L, 2);
 }
 
-uintptr_t task_scheduler::get_datamodel() {
-    uintptr_t fake_datamodel = *(uintptr_t*)(update::offsets::datamodel::fake_datamodel);
-    return fake_datamodel + update::offsets::datamodel::fake_datamodel_to_datamodel;
+void task_scheduler::initialize_scheduler()
+{
+    globals::roblox_state = (lua_State*)(context_manager::get_lua_state());
+
+    globals::forlorn_state = lua_newthread(globals::roblox_state);
+
+    context_manager::set_thread_capabilities(globals::forlorn_state, 8, max_caps);
+
+    luaL_sandboxthread(globals::forlorn_state);
+
+    environment::initialize(globals::forlorn_state);
+
+    setup_queue(globals::forlorn_state);
+
+    task_scheduler::send_script(R"--(
+        printidentity()
+        print("ForlornWare has loaded!")
+        --loadstring(game:HttpGet("https://raw.githubusercontent.com/Forlornicus/rbx-scripts/refs/heads/main/cool-ui.lua"))()
+    )--");
 }
 
-uintptr_t task_scheduler::get_script_context() {
-    uintptr_t children_pointer = *(uintptr_t*)(get_datamodel() + update::offsets::instance::children);
-    return *(uintptr_t*)(*(uintptr_t*)(children_pointer) + update::offsets::datamodel::script_context);
-}
-
-uintptr_t task_scheduler::get_lua_state() {
-    auto addr = get_script_context() + 0x140 + 0x30 + 0x88; // globalstate, conversionoffset, decryptstate
-    auto ptr = reinterpret_cast<const uint32_t*>(addr);
-    return (uint64_t(addr - ptr[1]) << 32) | (addr - ptr[0]);
+void task_scheduler::send_script(const std::string& script)
+{
+    globals::execution_queue.push(script);
 }

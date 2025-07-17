@@ -135,6 +135,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)dependencies;$(ProjectDir)module;$(ProjectDir)dependencies\luau;$(ProjectDir)dependencies\luau\VM\include;$(ProjectDir)dependencies\luau\Ast\include;$(ProjectDir)dependencies\luau\Common\include;$(ProjectDir)dependencies\luau\Compiler\include;$(ProjectDir)module\misc\update;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard_C>stdclatest</LanguageStandard_C>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -145,6 +146,9 @@
       <AdditionalDependencies>Bcrypt.lib;Ws2_32.lib;Wldap32.lib;Normaliz.lib;Crypt32.lib;zstd_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(ProjectDir)dependencies\zstd\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
+    <ProjectReference>
+      <UseLibraryDependencyInputs>true</UseLibraryDependencyInputs>
+    </ProjectReference>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dependencies\luau\Ast\src\Allocator.cpp" />
@@ -206,10 +210,16 @@
     <ClCompile Include="dependencies\lz4\include\lz4_memory.c" />
     <ClCompile Include="entry.cpp" />
     <ClCompile Include="module\environment\environment.cpp" />
+    <ClCompile Include="module\environment\hooks\hooks.cpp" />
+    <ClCompile Include="module\environment\libraries\closures\closure_library.cpp" />
+    <ClCompile Include="module\environment\libraries\http\http_library.cpp" />
+    <ClCompile Include="module\environment\libraries\script\script_library.cpp" />
+    <ClCompile Include="module\environment\yielder\yielder.cpp" />
     <ClCompile Include="module\execution\execution.cpp" />
-    <ClCompile Include="module\misc\tp_handler\tp_handler.cpp" />
-    <ClCompile Include="module\roblox\scheduler\scheduler.cpp" />
+    <ClCompile Include="module\misc\communication\com.cpp" />
+    <ClCompile Include="module\misc\teleport_handler\tp_handler.cpp" />
     <ClCompile Include="module\roblox\task_scheduler\task_scheduler.cpp" />
+    <ClCompile Include="module\roblox\context_manager\context_manager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="dependencies\luau\Ast\include\Luau\Allocator.h" />
@@ -271,13 +281,19 @@
     <ClInclude Include="dependencies\zstd\include\zstd\xxhash.h" />
     <ClInclude Include="dependencies\zstd\include\zstd\zstd.h" />
     <ClInclude Include="module\environment\environment.hpp" />
+    <ClInclude Include="module\environment\hooks\hooks.hpp" />
+    <ClInclude Include="module\environment\libraries\closures\closure_library.hpp" />
+    <ClInclude Include="module\environment\libraries\http\http_library.hpp" />
+    <ClInclude Include="module\environment\libraries\script\script_library.hpp" />
+    <ClInclude Include="module\environment\yielder\yielder.hpp" />
     <ClInclude Include="module\execution\execution.hpp" />
+    <ClInclude Include="module\misc\communication\com.hpp" />
     <ClInclude Include="module\misc\globals.hpp" />
-    <ClInclude Include="module\misc\tp_handler\tp_handler.hpp" />
+    <ClInclude Include="module\misc\teleport_handler\tp_handler.hpp" />
     <ClInclude Include="module\misc\update\enchelper\enchelper.hpp" />
     <ClInclude Include="module\misc\update\update.hpp" />
-    <ClInclude Include="module\roblox\scheduler\scheduler.hpp" />
     <ClInclude Include="module\roblox\task_scheduler\task_scheduler.hpp" />
+    <ClInclude Include="module\roblox\context_manager\context_manager.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -17,7 +17,9 @@
 
 #include "update.hpp"
 #include "misc/globals.hpp"
-#include "../roblox/task_scheduler/task_scheduler.hpp"
+#include "../roblox/context_manager/context_manager.hpp"
+#include "yielder/yielder.hpp"
+#include "hooks/hooks.hpp"
 
 #include "VM/include/lua.h"
 #include "VM/include/lualib.h"
@@ -39,21 +41,26 @@
 #include "Common/include/Luau/BytecodeUtils.h"
 #include "Compiler/include/Luau/BytecodeBuilder.h"
 
-inline void register_env_functions(lua_State* l, const luaL_Reg* functions) {
+// environment
+#include "libraries/closures/closure_library.hpp"
+#include "libraries/http/http_library.hpp"
+#include "libraries/script/script_library.hpp"
+
+inline void register_env_functions(lua_State* l, std::initializer_list<luaL_Reg> functions) {
     lua_pushvalue(l, LUA_GLOBALSINDEX);
-    luaL_register(l, nullptr, functions);
+    luaL_register(l, nullptr, functions.begin());
     lua_pop(l, 1);
 }
 
-inline void register_env_members(lua_State* l, const luaL_Reg* functions, const std::string& global_name) {
-    luaL_register(l, global_name.c_str(), functions);
+inline void register_env_members(lua_State* l, std::initializer_list<luaL_Reg> functions, const std::string& global_name) {
+    luaL_register(l, global_name.c_str(), functions.begin());
 }
 
-inline void register_to_global(lua_State* l, const luaL_Reg* functions, const std::string& global_name) {
+inline void register_to_global(lua_State* l, std::initializer_list<luaL_Reg> functions, const std::string& global_name) {
     lua_getglobal(l, global_name.c_str());
     if (lua_istable(l, -1)) {
         lua_setreadonly(l, -1, false);
-        luaL_register(l, nullptr, functions);
+        luaL_register(l, nullptr, functions.begin());
         lua_setreadonly(l, -1, true);
     }
     lua_pop(l, 1);

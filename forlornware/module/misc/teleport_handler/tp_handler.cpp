@@ -2,7 +2,7 @@
 
 bool game_loaded()
 {
-	uintptr_t datamodel = task_scheduler::get_datamodel();
+	uintptr_t datamodel = context_manager::get_datamodel();
 	if (!datamodel)
 		return false;
 
@@ -16,7 +16,7 @@ void teleport_loop()
 	while (true)
 	{
 
-		uintptr_t current_datamodel = task_scheduler::get_datamodel();
+		uintptr_t current_datamodel = context_manager::get_datamodel();
 		if (!current_datamodel)
 			continue;
 
@@ -24,7 +24,7 @@ void teleport_loop()
 
 		while (!game_loaded())
 		{
-			current_datamodel = task_scheduler::get_datamodel();
+			current_datamodel = context_manager::get_datamodel();
 			if (!current_datamodel)
 				break;
 
@@ -35,7 +35,7 @@ void teleport_loop()
 		if (!game_loaded())
 			continue;
 
-		scheduler::initialize_scheduler();
+		task_scheduler::initialize_scheduler();
 		last_datamodel = current_datamodel;
 
 		while (game_loaded())
