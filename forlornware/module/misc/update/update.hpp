@@ -33,7 +33,7 @@ namespace update
         {
             const uintptr_t fake_datamodel = rebase(0x6833728);
             const uintptr_t fake_datamodel_to_datamodel = 0x1B8;
-            const uintptr_t script_context = 0x3B0;
+            const uintptr_t script_context = 0x3C0;
             const uintptr_t game_loaded = 0x660;
         }
 
@@ -66,23 +66,25 @@ namespace roblox
 #define LUAU_SHUFFLE9(s, a1, a2, a3, a4, a5, a6, a7, a8, a9) a9 s a2 s a4 s a8 s a3 s a7 s a5 s a1 s a6
 
 #define PROTO_MEMBER1_ENC VMValue0
-#define CLOSURE_FUNC_ENC VMValue0
-#define LSTATE_GLOBAL_ENC VMValue0
-#define TABLE_MEMBER_ENC VMValue0
-#define TABLE_META_ENC VMValue0
-#define TSTRING_LEN_ENC VMValue0
-#define GSTATE_TTNAME_ENC VMValue0
-#define GSTATE_TMNAME_ENC VMValue0
+#define PROTO_MEMBER2_ENC VMValue2
+#define PROTO_DEBUGISN_ENC VMValue4
+#define PROTO_TYPEINFO_ENC VMValue1
+#define PROTO_DEBUGNAME_ENC VMValue3
 
 #define LSTATE_STACKSIZE_ENC VMValue1
-#define PROTO_TYPEINFO_ENC VMValue1
+#define LSTATE_GLOBAL_ENC VMValue0
 
-#define PROTO_MEMBER2_ENC VMValue2
+#define CLOSURE_FUNC_ENC VMValue0
+#define CLOSURE_CONT_ENC VMValue4
 #define CLOSURE_DEBUGNAME_ENC VMValue2
 
-#define PROTO_DEBUGNAME_ENC VMValue3
-#define TSTRING_HASH_ENC VMValue3
+#define TABLE_MEMBER_ENC VMValue0
+#define TABLE_META_ENC VMValue0
 
-#define PROTO_DEBUGISN_ENC VMValue4
-#define CLOSURE_CONT_ENC VMValue4
 #define UDATA_META_ENC VMValue4
+
+#define TSTRING_HASH_ENC VMValue3
+#define TSTRING_LEN_ENC VMValue0
+
+#define GSTATE_TTNAME_ENC VMValue0
+#define GSTATE_TMNAME_ENC VMValue0

@@ -1,4 +1,5 @@
 #include "task_scheduler.hpp"
+#include <sstream>
 
 int hook_scheduler(lua_State* L)
 {
@@ -38,16 +39,15 @@ void task_scheduler::initialize_scheduler()
 
     context_manager::set_thread_capabilities(globals::forlorn_state, 8, max_caps);
 
-    luaL_sandboxthread(globals::forlorn_state);
-
     environment::initialize(globals::forlorn_state);
 
+    luaL_sandboxthread(globals::forlorn_state);
+    
     setup_queue(globals::forlorn_state);
 
     task_scheduler::send_script(R"--(
         printidentity()
         print("ForlornWare has loaded!")
-        --loadstring(game:HttpGet("https://raw.githubusercontent.com/Forlornicus/rbx-scripts/refs/heads/main/cool-ui.lua"))()
     )--");
 }
 
