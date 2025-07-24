@@ -14,7 +14,7 @@ void context_manager::set_thread_capabilities(lua_State* l, int lvl, uintptr_t c
 
 uintptr_t context_manager::get_datamodel() {
     uintptr_t fake_datamodel = *(uintptr_t*)(update::offsets::datamodel::fake_datamodel);
-    return fake_datamodel + update::offsets::datamodel::fake_datamodel_to_datamodel;
+    return *(uintptr_t*)(fake_datamodel + update::offsets::datamodel::fake_datamodel_to_datamodel);
 }
 
 uintptr_t context_manager::get_script_context() {
@@ -23,7 +23,6 @@ uintptr_t context_manager::get_script_context() {
 }
 
 uintptr_t context_manager::get_lua_state() {
-    auto addr = get_script_context() + 0x140 + 0x30 + 0x88; // globalstate, conversionoffset, decryptstate
-    auto ptr = reinterpret_cast<const uint32_t*>(addr);
-    return (uint64_t(addr - ptr[1]) << 32) | (addr - ptr[0]);
+    uint64_t a2 = 0, a3 = 0;
+    return roblox::get_state(get_script_context(), &a2, &a3);
 }

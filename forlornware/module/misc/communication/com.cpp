@@ -10,8 +10,7 @@
 #include <vector>
 #include <cstring>
 
-struct script_server::impl
-{
+struct script_server::impl {
     SOCKET server_socket = INVALID_SOCKET;
     SOCKET client_socket = INVALID_SOCKET;
     sockaddr_in server_addr{};
@@ -23,14 +22,12 @@ script_server::script_server()
 {
 }
 
-script_server::~script_server()
-{
+script_server::~script_server() {
     close();
     delete pimpl;
 }
 
-bool script_server::initialize(int port)
-{
+bool script_server::initialize(int port) {
     if (WSAStartup(MAKEWORD(2, 2), &pimpl->wsa_data) != 0)
         return false;
 
@@ -62,8 +59,7 @@ bool script_server::initialize(int port)
     return true;
 }
 
-std::string script_server::receive_script()
-{
+std::string script_server::receive_script() {
     sockaddr_in client_addr{};
     int client_size = sizeof(client_addr);
     std::vector<char> buffer(1024);
@@ -85,8 +81,7 @@ std::string script_server::receive_script()
     return script;
 }
 
-void script_server::close()
-{
+void script_server::close() {
     if (pimpl->server_socket != INVALID_SOCKET)
     {
         closesocket(pimpl->server_socket);

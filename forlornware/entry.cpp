@@ -1,16 +1,17 @@
 #include <iostream>
 #include <Windows.h>
 #include <thread>
+#include <chrono>
 
 #include "misc/teleport_handler/tp_handler.hpp"
 #include "misc/communication/com.hpp"
 
-void load()
-{
+void load() {
     teleport_handler::initialize();
 
     script_server server;
-    if (!server.initialize(2304)) { // port (2304)
+    if (!server.initialize(2304)) {
+        roblox::r_print(0, "failed bc you are gay");
         return;
     }
 
@@ -19,13 +20,14 @@ void load()
         if (!script.empty()) {
             task_scheduler::send_script(script);
         }
+        else {
+            std::this_thread::sleep_for(std::chrono::milliseconds(10));
+        }
     }
 }
 
-BOOL APIENTRY DllMain( HMODULE mod, DWORD reason, LPVOID res)
-{
-    if (reason == DLL_PROCESS_ATTACH)
-    {
+BOOL APIENTRY DllMain(HMODULE mod, DWORD reason, LPVOID) {
+    if (reason == DLL_PROCESS_ATTACH) {
         std::thread(load).detach();
     }
     return TRUE;
