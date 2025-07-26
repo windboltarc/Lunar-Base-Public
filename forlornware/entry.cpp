@@ -28,6 +28,9 @@ void load() {
 
 BOOL APIENTRY DllMain(HMODULE mod, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
+        // only uncomment this if the module is crashing after 30 secs (means your injector is pretty ass)
+        // global_functions::patch_control_flow_guard(mod);
+
         std::thread(load).detach();
     }
     return TRUE;

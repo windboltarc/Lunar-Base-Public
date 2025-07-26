@@ -8,16 +8,21 @@
 
 struct lua_State;
 
-#define rebase(x) (x + (uintptr_t)(GetModuleHandle(nullptr)))
+#define rebase(x) x + (uintptr_t)GetModuleHandle(nullptr)
+#define rebase_hyperion(x) x + (uintptr_t)GetModuleHandleA("RobloxPlayerBeta.dll")
     
 // updated for version-2a06298afe3947ab
 namespace update
 {
+    // you only need to update this if you are calling the patch cfg function in entry.cpp
+    const uintptr_t bitmap = rebase_hyperion(0x2B74D0);
+
     namespace roblox
     {
         const uintptr_t print = rebase(0x14D2A10);
         const uintptr_t luad_throw = rebase(0x268B3C0);
         const uintptr_t get_lua_state = rebase(0xB8DA40);
+        const uintptr_t request_code = rebase(0x946B00);
     }
 
     namespace lua
@@ -56,6 +61,9 @@ namespace roblox
 
     using luad_throw_t = void(__fastcall*)(lua_State*, int);
     inline luad_throw_t luad_throw = reinterpret_cast<luad_throw_t>(update::roblox::luad_throw);
+
+    using request_code_t = uintptr_t(__fastcall*)(uintptr_t, uintptr_t);
+    inline request_code_t request_code = reinterpret_cast<request_code_t>(update::roblox::request_code);
 }
 
 #define LUAU_COMMA_SEP ,

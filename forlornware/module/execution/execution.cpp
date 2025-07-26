@@ -9,7 +9,7 @@ void execution::execute_script(lua_State* l, const std::string& script) {
     lua_pop(l, 1);
     luaL_sandboxthread(thread);
 
-    auto bytecode = compile_script(script);
+    auto bytecode = global_functions::compile_script(script);
     if (luau_load(thread, "@ForlornWare", bytecode.c_str(), bytecode.size(), 0) != LUA_OK) {
         if (const char* err = lua_tostring(thread, -1))
             roblox::r_print(0, "%s", err);

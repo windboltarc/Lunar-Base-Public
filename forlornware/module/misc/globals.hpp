@@ -3,11 +3,14 @@
 #include <lua.h>
 #include <Windows.h>
 #include <queue>
+#include <psapi.h>
 
 #include "Compiler/include/luacode.h"
 #include "luau/BytecodeBuilder.h"
 #include "luau/BytecodeUtils.h"
 #include "luau/Compiler.h"
+
+#include "zstd/include/zstd/zstd.h"
 
 inline uintptr_t max_caps = 0xEFFFFFFFFFFFFFFF;
 
@@ -27,21 +30,43 @@ class bytecode_encoder : public Luau::BytecodeEncoder {
 
 inline bytecode_encoder encoder;
 
-inline std::string compile_script(const std::string& omegahacker) {
-    static const char* mutable_globals[] = {
-        "Game", "Workspace", "game", "plugin", "script", "shared", "workspace",
-        "_G", "_ENV", nullptr
-    };
+namespace global_functions
+{
+    inline std::string compile_script(const std::string& omegahacker) {
+        static const char* mutable_globals[] = {
+            "Game", "Workspace", "game", "plugin", "script", "shared", "workspace",
+            "_G", "_ENV", nullptr
+        };
 
-    Luau::CompileOptions options;
-    options.debugLevel = 1;
-    options.optimizationLevel = 1;
-    options.mutableGlobals = mutable_globals;
-    options.vectorLib = "Vector3";
-    options.vectorCtor = "new";
-    options.vectorType = "Vector3";
+        Luau::CompileOptions options;
+        options.debugLevel = 1;
+        options.optimizationLevel = 1;
+        options.mutableGlobals = mutable_globals;
+        options.vectorLib = "Vector3";
+        options.vectorCtor = "new";
+        options.vectorType = "Vector3";
 
-    return Luau::compile(omegahacker, options, {}, &encoder);
+        return Luau::compile(omegahacker, options, {}, &encoder);
+    }
+
+    inline std::string decompress_bytecode(const std::string& c) {
+        uint8_t h[4]; memcpy(h, c.data(), 4);
+        for (int i = 0; i < 4; i++) h[i] = (h[i] ^ "RSB1"[i]) - i * 41;
+        std::vector<uint8_t> v(c.begin(), c.end());
+        for (size_t i = 0; i < v.size(); i++) v[i] ^= h[i % 4] + i * 41;
+        int len; memcpy(&len, v.data() + 4, 4);
+        std::string out(len, 0);
+        return ZSTD_decompress(out.data(), len, v.data() + 8, v.size() - 8) == len ? out : "";
+    }
+
+    inline void patch_control_flow_guard(HMODULE dll)
+    {
+        MODULEINFO mi;
+        GetModuleInformation(GetCurrentProcess(), dll, &mi, sizeof(mi));
+        auto base = (uintptr_t)dll, end = base + mi.SizeOfImage, bmp = *(uintptr_t*)update::bitmap;
+        for (auto p = base; p < end; p += 0x1000)
+            *(uint8_t*)(bmp + (p >> 0x13)) |= 1 << ((p >> 0x10) & 7);
+    }
 }
 
 namespace globals {
