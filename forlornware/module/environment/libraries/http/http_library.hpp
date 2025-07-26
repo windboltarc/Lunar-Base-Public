@@ -1,5 +1,6 @@
 #pragma once
 #include "../../environment.hpp"
+#include <unordered_set>
 
 class http_library
 {

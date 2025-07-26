@@ -10,13 +10,12 @@
         <Button Content="Execute" HorizontalAlignment="Left" Margin="10,0,0,10" VerticalAlignment="Bottom" Height="36" Width="139" FontSize="15" Click="Button_Click_2"/>
         <Button Content="Inject" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Height="36" Width="139" FontSize="15" Click="Button_Click"/>
         <Button Content="Clear" HorizontalAlignment="Left" Margin="154,0,0,10" VerticalAlignment="Bottom" Height="36" Width="139" FontSize="15" Click="Button_Click_1"/>
-        <RichTextBox x:Name="editor" Margin="10,10,10,51" FontSize="17.5">
+        <RichTextBox x:Name="editor" Margin="10,10,10,51" FontSize="15" VerticalScrollBarVisibility="Visible" TextChanged="Editor_TextChanged" AcceptsTab="True">
             <FlowDocument>
-                <Paragraph>
+                <Paragraph LineHeight="2">
                     <Run Text="printidentity()"/>
                 </Paragraph>
             </FlowDocument>
         </RichTextBox>
-
     </Grid>
 </Window>

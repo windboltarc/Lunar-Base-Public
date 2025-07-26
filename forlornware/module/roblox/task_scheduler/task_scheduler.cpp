@@ -37,7 +37,7 @@ void task_scheduler::initialize_scheduler() {
 
     context_manager::set_thread_capabilities(globals::forlorn_state, 8, max_caps);
     environment::initialize(globals::forlorn_state);
-    luaL_sandboxthread(globals::forlorn_state);
+    //luaL_sandboxthread(globals::forlorn_state);  this is now being sandboxed in the environment initialization
 
     setup_queue(globals::forlorn_state);
 

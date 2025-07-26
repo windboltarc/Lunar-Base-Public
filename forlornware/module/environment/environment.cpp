@@ -8,6 +8,8 @@ void environment::initialize(lua_State* L)
 
 	hooks::initialize(L);
 
+    luaL_sandboxthread(L);
+
     lua_newtable(L);
     lua_setglobal(L, "_G");
 

@@ -31,6 +31,14 @@ namespace forlornui
             editor.Document.Blocks.Add(new Paragraph(new Run(text)));
         }
 
+        private void Editor_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            foreach (Paragraph paragraph in editor.Document.Blocks.OfType<Paragraph>())
+            {
+                paragraph.LineHeight = 2;
+            }
+        }
+
         private string get_editor_text()
         {
             return new TextRange(editor.Document.ContentStart, editor.Document.ContentEnd).Text;

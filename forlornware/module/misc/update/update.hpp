@@ -10,7 +10,7 @@ struct lua_State;
 
 #define rebase(x) (x + (uintptr_t)(GetModuleHandle(nullptr)))
     
-// updated for version-225e87fdb7254f64
+// updated for version-2a06298afe3947ab
 namespace update
 {
     namespace roblox
