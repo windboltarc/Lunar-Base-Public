@@ -6,6 +6,10 @@
 #include "misc/teleport_handler/tp_handler.hpp"
 #include "misc/communication/com.hpp"
 
+#pragma region DLL_EXPORTS
+extern "C" __declspec(dllexport) LRESULT NextHook(int code, WPARAM wParam, LPARAM lParam) { return CallNextHookEx(nullptr, code, wParam, lParam); }
+#pragma endregion
+
 void load() {
     teleport_handler::initialize();
 

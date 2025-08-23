@@ -11,33 +11,31 @@ struct lua_State;
 #define rebase(x) x + (uintptr_t)GetModuleHandle(nullptr)
 #define rebase_hyperion(x) x + (uintptr_t)GetModuleHandleA("RobloxPlayerBeta.dll")
     
-// updated for version-3f74e22590714de4
+// updated for version-89b6c70d8f7f42ac
 namespace update
 {
-    // you only need to update this if you are calling the patch cfg function in entry.cpp
-    const uintptr_t bitmap = rebase_hyperion(0x254E20);
+    const uintptr_t bitmap = rebase_hyperion(0x247008);
 
     namespace roblox
     {
-        const uintptr_t print = rebase(0x1490C90);
-        const uintptr_t luad_throw = rebase(0x26A4240);
-        const uintptr_t get_lua_state = rebase(0xB48D60);
-        const uintptr_t request_code = rebase(0x10B3010);
+        const uintptr_t print = rebase(0x1542550);
+        const uintptr_t luad_throw = rebase(0x2779CB0);
+        const uintptr_t get_lua_state = rebase(0xBED320);
     }
 
     namespace lua
     {
-        const uintptr_t luao_nilobject = rebase(0x4C773B8);
-        const uintptr_t luau_execute = rebase(0x26D6DE0);
-        const uintptr_t luah_dummynode = rebase(0x4C76DD8);
-        const uintptr_t opcode_lookup = rebase(0x5291F70);
+        const uintptr_t luao_nilobject = rebase(0x4DC0C28);
+        const uintptr_t luau_execute = rebase(0x27ACBE0);
+        const uintptr_t luah_dummynode = rebase(0x4DC0648);
+        const uintptr_t opcode_lookup = rebase(0x53E6bD0);
     }
 
     namespace offsets
     {
         namespace datamodel
         {
-            const uintptr_t fake_datamodel = rebase(0x6E854F8);
+            const uintptr_t fake_datamodel = rebase(0x7022FA8);
             const uintptr_t fake_datamodel_to_datamodel = 0x1C0;
             const uintptr_t script_context = 0x3D0;
             const uintptr_t game_loaded = 0x668;
@@ -61,41 +59,38 @@ namespace roblox
 
     using luad_throw_t = void(__fastcall*)(lua_State*, int);
     inline luad_throw_t luad_throw = reinterpret_cast<luad_throw_t>(update::roblox::luad_throw);
-
-    using request_code_t = uintptr_t(__fastcall*)(uintptr_t, uintptr_t);
-    inline request_code_t request_code = reinterpret_cast<request_code_t>(update::roblox::request_code);
 }
 
 #define LUAU_COMMA_SEP ,
 #define LUAU_SEMICOLON_SEP ;
 
-#define LUAU_SHUFFLE3(s, a1, a2, a3) a3 s a1 s a2
-#define LUAU_SHUFFLE4(s, a1, a2, a3, a4) a4 s a2 s a3 s a1
-#define LUAU_SHUFFLE5(s, a1, a2, a3, a4, a5) a4 s a3 s a2 s a5 s a1
-#define LUAU_SHUFFLE6(s, a1, a2, a3, a4, a5, a6) a3 s a6 s a4 s a2 s a1 s a5
-#define LUAU_SHUFFLE7(s, a1, a2, a3, a4, a5, a6, a7) a4 s a1 s a3 s a5 s a7 s a2 s a6
-#define LUAU_SHUFFLE8(s, a1, a2, a3, a4, a5, a6, a7, a8) a6 s a4 s a2 s a7 s a8 s a1 s a3 s a5
-#define LUAU_SHUFFLE9(s, a1, a2, a3, a4, a5, a6, a7, a8, a9) a4 s a7 s a6 s a5 s a2 s a3 s a1 s a9 s a8
+#define LUAU_SHUFFLE3(s, a1, a2, a3) a2 s a3 s a1
+#define LUAU_SHUFFLE4(s, a1, a2, a3, a4) a1 s a3 s a2 s a4
+#define LUAU_SHUFFLE5(s, a1, a2, a3, a4, a5) a2 s a4 s a1 s a3 s a5
+#define LUAU_SHUFFLE6(s, a1, a2, a3, a4, a5, a6) a3 s a1 s a2 s a6 s a4 s a5
+#define LUAU_SHUFFLE7(s, a1, a2, a3, a4, a5, a6, a7) a7 s a4 s a3 s a1 s a2 s a6 s a5
+#define LUAU_SHUFFLE8(s, a1, a2, a3, a4, a5, a6, a7, a8) a8 s a2 s a7 s a1 s a4 s a6 s a5 s a3
+#define LUAU_SHUFFLE9(s, a1, a2, a3, a4, a5, a6, a7, a8, a9) a2 s a3 s a4 s a1 s a9 s a8 s a5 s a7 s a6
 
 #define PROTO_MEMBER1_ENC VMValue0
-#define PROTO_MEMBER2_ENC VMValue3
-#define PROTO_DEBUGISN_ENC VMValue1
-#define PROTO_TYPEINFO_ENC VMValue4
-#define PROTO_DEBUGNAME_ENC VMValue2
+#define PROTO_MEMBER2_ENC VMValue4
+#define PROTO_DEBUGISN_ENC VMValue3
+#define PROTO_TYPEINFO_ENC VMValue2
+#define PROTO_DEBUGNAME_ENC VMValue1
 
-#define LSTATE_STACKSIZE_ENC VMValue4
+#define LSTATE_STACKSIZE_ENC VMValue2
 #define LSTATE_GLOBAL_ENC VMValue0
 
 #define CLOSURE_FUNC_ENC VMValue0
-#define CLOSURE_CONT_ENC VMValue1
-#define CLOSURE_DEBUGNAME_ENC VMValue3
+#define CLOSURE_CONT_ENC VMValue3
+#define CLOSURE_DEBUGNAME_ENC VMValue4
 
 #define TABLE_MEMBER_ENC VMValue0
 #define TABLE_META_ENC VMValue0
 
-#define UDATA_META_ENC VMValue1
+#define UDATA_META_ENC VMValue3
 
-#define TSTRING_HASH_ENC VMValue2
+#define TSTRING_HASH_ENC VMValue1
 #define TSTRING_LEN_ENC VMValue0
 
 #define GSTATE_TTNAME_ENC VMValue0
