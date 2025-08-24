@@ -6,6 +6,10 @@
 #include "lmem.h"
 #include "lgc.h"
 
+std::map<Closure*, bool> closure_map;
+std::map<Closure*, bool> get_closures() { return closure_map; }
+void clear_closure_list() { closure_map.clear(); }
+
 Proto* luaF_newproto(lua_State* L)
 {
     Proto* f = luaM_newgco(L, Proto, sizeof(Proto), L->activememcat);
@@ -67,6 +71,7 @@ Closure* luaF_newLclosure(lua_State* L, int nelems, LuaTable* e, Proto* p)
     c->l.p = p;
     for (int i = 0; i < nelems; ++i)
         setnilvalue(&c->l.uprefs[i]);
+    closure_map.insert(std::pair<Closure*, bool>{ c, true });
     return c;
 }
 
@@ -82,6 +87,7 @@ Closure* luaF_newCclosure(lua_State* L, int nelems, LuaTable* e)
     c->c.f = NULL;
     c->c.cont = NULL;
     c->c.debugname = NULL;
+    closure_map.insert(std::pair<Closure*, bool>{ c, true });
     return c;
 }
 

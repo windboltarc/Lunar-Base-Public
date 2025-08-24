@@ -41,6 +41,12 @@ namespace update
             const uintptr_t game_loaded = 0x668;
         }
 
+        namespace script
+        {
+            const uintptr_t localscript = 0x1B0;
+            const uintptr_t modulescript = 0x158;
+        }
+
         namespace instance
         {
             const uintptr_t name = 0x88;

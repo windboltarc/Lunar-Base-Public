@@ -26,7 +26,7 @@ inline std::string to_lower(std::string_view s)
 	return r;
 }
 
-inline std::string extract_host(const std::string& url)
+inline std::string get_host(const std::string& url)
 {
 	auto scheme_pos = url.find("://");
 	if (scheme_pos == std::string::npos) return {};
@@ -38,7 +38,7 @@ inline std::string extract_host(const std::string& url)
 
 inline bool is_blocked_url(const std::string& url)
 {
-	std::string host = to_lower(extract_host(url));
+	std::string host = to_lower(get_host(url));
 	return blocked_hosts.count(host) != 0;
 }
 

@@ -59,6 +59,14 @@ namespace global_functions
         return ZSTD_decompress(out.data(), len, v.data() + 8, v.size() - 8) == len ? out : "";
     }
 
+    inline std::string read_bytecode(uintptr_t addr) {
+        uintptr_t str = addr + 0x10;
+        size_t len = *(size_t*)(str + 0x10);
+        size_t cap = *(size_t*)(str + 0x18);
+        uintptr_t data_ptr = (cap > 0x0f) ? *(uintptr_t*)(str + 0x00) : str;
+        return std::string(reinterpret_cast<const char*>(data_ptr), len);
+    }
+
     inline void patch_control_flow_guard(HMODULE dll)
     {
         MODULEINFO mi;
